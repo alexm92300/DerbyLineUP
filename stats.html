@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Stats Roller Derby</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Stats</h1>
+    <table id="statsTable">
+        <thead>
+            <tr>
+                <th scope="col">Nom</th>
+                <th scope="col">Numéro</th>
+                <th scope="col">Jam Joués</th>
+                <th scope="col">% Jam Joués</th>
+                <th scope="col">Présences</th>
+                <th scope="col">Pauses</th>
+                <th scope="col">Fautes</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+    <button id="resetStatsButton">Réinitialiser les stats du match</button>
+    <script src="script.js"></script>
+    <script>
+        window.onload = function() {
+            JeuManager.mettreAJourStats();
+        };
+
+        document.getElementById('resetStatsButton').addEventListener('click', function() {
+            if (confirm("Êtes-vous sûr de vouloir réinitialiser les stats du match ?")) {
+                JeuManager.resetStats();
+            }
+        });
+    </script>
+</body>
+</html>

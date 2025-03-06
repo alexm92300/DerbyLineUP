@@ -1,0 +1,154 @@
+body {
+    font-family: sans-serif;
+    margin: 20px;
+    background-color: #f4f4f4;
+}
+
+h1 {
+    color: #333;
+    text-align: center;
+}
+
+button {
+    background-color: #007bff;
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+.container {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+#joueusesEnJeu, #prochaineLigne {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+#joueusesEnJeu p, #prochaineLigne p {
+    background-color: #e0e0e0;
+    padding: 10px;
+    margin: 5px;
+    border-radius: 5px;
+}
+
+#rosterTable, #lignesTable, #statsTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+#rosterTable th, #rosterTable td, #lignesTable th, #lignesTable td, #statsTable th, #statsTable td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+#rosterTable th, #lignesTable th, #statsTable th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+
+#rosterTable tr:hover, #lignesTable tr:hover, #statsTable tr:hover {
+    background-color: #f9f9f9;
+}
+
+#rosterTable input[type="text"], select {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    width: 100%;
+    box-sizing: border-box;
+    transition: border-color 0.3s ease;
+}
+
+#rosterTable input[type="text"]:focus, select:focus {
+    border-color: #007bff;
+    outline: none;
+}
+
+.poste {
+    cursor: pointer;
+    position: relative;
+    padding: 10px;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.poste span {
+    position: static;
+}
+
+#rosterTable td:nth-child(2),
+#rosterTable td:nth-child(3),
+#rosterTable td:nth-child(4),
+#rosterTable td:nth-child(5) { /* Ajout de la colonne Blocker (5ème) */
+    text-align: center;
+}
+
+#rosterTable td:nth-child(2) span,
+#rosterTable td:nth-child(3) span,
+#rosterTable td:nth-child(4) span,
+#rosterTable td:nth-child(5) span { /* Ajout de la colonne Blocker (5ème) */
+    display: inline-block;
+    vertical-align: middle;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+}
+
+th {
+    background-color: #f2f2f2;
+}
+
+.en-prison {
+    background-color: #ffe6e6;
+}
+
+#prochaineLigne td.highlight {
+    background-color: yellow;
+}
+
+.pause-active {
+    background-color: green;
+}
+
+#joueusesEnJeu td, #prochaineLigne td {
+    position: relative;
+}
+
+#joueusesEnJeu td span.stats, #prochaineLigne td span.stats {
+    display: block;
+    font-size: 0.9em;
+    color: #777;
+    margin-top: 5px;
+}
+
+
