@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Roster Roller Derby</title>
+	<meta charset="UTF-8">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body data-page="roster">
+    <h1>Roster</h1>
+
+
+
+	<table id="rosterTable">
+		<thead>
+			<tr>
+				<th>Nom</th>
+				<th>Numéro</th>
+				<th>Jammer</th>
+				<th>Pivot</th>
+				<th>Blocker</th>
+				<th>Actions</th>
+			</tr>
+		</thead>
+		<tbody>
+		</tbody>
+	</table>
+	
+	<div id="ajoutJoueuseForm">
+		<input type="text" id="nouveauNom" placeholder="Nom de la joueuse">
+		<input type="text" id="nouveauNumero" placeholder="Numéro de la joueuse">
+		<button id="ajouterNouvelleJoueuse">Ajouter</button>
+	</div>
+	
+	<!-- <button id="importerRoster">Importer Roster</button> -->
+	<button id="sauvegarderRoster">Sauvegarder</button>
+	<div id="importArea" style="display: none;">
+		<textarea id="importData" rows="10" cols="50"></textarea>
+		<button id="importerDepuisTexte">Importer</button>
+	</div>
+
+	<button id="importerRoster">Importer Roster</button>
+    <script src="script.js"></script>
+</body>
+</html>
