@@ -150,5 +150,31 @@ th {
     color: #777;
     margin-top: 5px;
 }
+nav {
+    background-color: #f0f0f0;
+    padding: 10px;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+}
 
+nav a {
+    text-decoration: none;
+    padding: 10px 20px;
+    margin: 0 10px;
+    border-radius: 5px;
+    background-color: #e0e0e0;
+    color: #333;
+}
+
+nav a:hover {
+    background-color: #d0d0d0;
+}
+
+nav a.active {
+    background-color: #c0c0c0;
+    color: #fff;
+}
+.pause-hidden {
+    display: none;
+}
 

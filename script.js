@@ -13,6 +13,13 @@ let compteurJams = parseInt(localStorage.getItem('compteurJams')) || 1;
 let boutonsPause = {};
 let boutonsEtat = {};
 
+const navLinks = document.querySelectorAll('nav a');
+	navLinks.forEach(link => {
+		if (link.href === window.location.href) {
+			link.classList.add('active');
+		}
+});
+
 // Fonctions de gestion des états des boutons
 	function mettreAJourAffichageBouton(nomBouton) {
 		let bouton = document.getElementById(nomBouton);
@@ -242,95 +249,84 @@ const RosterManager = {
 
 // Fonctions de gestion des Lignes (lignes.html)
 const LignesManager = {
-	initialiser: function() {
-		console.log("LignesManager.initialiser() appelé"); // Ajouter ce log
-		const lignesTable = document.getElementById('lignesTable');
-		if (lignesTable) {
-			const table = lignesTable.getElementsByTagName('tbody')[0];
+    initialiser: function() {
+        console.log("LignesManager.initialiser() appelé");
+		this.mettreAJour();
+
+		const ajouterLigneButton = document.getElementById('ajouterLigne');
+		if (ajouterLigneButton) {
+			ajouterLigneButton.addEventListener('click', this.ajouterLigne.bind(this));
+		} else {
+			console.error("L'élément avec l'ID 'ajouterLigne' n'a pas été trouvé dans LignesManager.initialiser.");
+		}
+
+		const sauvegarderLignesButton = document.getElementById('sauvegarderLignes');
+		if (sauvegarderLignesButton) {
+			sauvegarderLignesButton.addEventListener('click', this.sauvegarder.bind(this));
+		} else {
+			console.error("L'élément avec l'ID 'sauvegarderLignes' n'a pas été trouvé dans LignesManager.initialiser.");
+		}
+    },
+	mettreAJour: function() {
+		const table = document.getElementById('lignesTable').getElementsByTagName('tbody')[0];
+		if (table) {
 			table.innerHTML = '';
 			lignes.forEach((ligne, index) => {
 				let row = table.insertRow();
-				let numeroCell = row.insertCell(0);
-				let jammerCell = row.insertCell(1);
-				let pivotCell = row.insertCell(2);
-				let blocker1Cell = row.insertCell(3);
-				let blocker2Cell = row.insertCell(4);
-				let blocker3Cell = row.insertCell(5);
-				let actionsCell = row.insertCell(6);
+				row.draggable = true;
+                row.dataset.index = index; // Attribution de data-index
+                row.addEventListener('dragstart', this.dragStart.bind(this));
+                row.addEventListener('dragover', this.dragOver.bind(this));
+                row.addEventListener('drop', this.drop.bind(this));
+				let numeroCell = row.insertCell(0); // Ajout de la cellule du numéro de ligne
+				numeroCell.textContent = index + 1; // Attribution du numéro de ligne
 
-				numeroCell.textContent = index + 1;
-				jammerCell.textContent = ligne.jammer;
-				pivotCell.textContent = ligne.pivot;
-				blocker1Cell.textContent = ligne.blocker0;
-				blocker2Cell.textContent = ligne.blocker1;
-				blocker3Cell.textContent = ligne.blocker2;
+				['jammer', 'pivot', 'blocker0', 'blocker1', 'blocker2'].forEach((poste, posteIndex) => {
+					let cell = row.insertCell(posteIndex + 1); // Décalage des cellules de poste
+					cell.setAttribute('data-index', index);
+					cell.setAttribute('data-poste', poste);
+					cell.setAttribute('ondrop', 'drop(event)');
+					cell.setAttribute('ondragover', 'allowDrop(event)');
 
-				let supprimerBtn = document.createElement('button');
-				supprimerBtn.textContent = 'Supprimer';
-				supprimerBtn.onclick = () => this.supprimerLigne(index);
+					let select = this.creerListeDeroulante(roster, ligne[poste], poste);
+					select.onchange = (event) => this.mettreAJourLigne(index, poste, event.target.value);
+					cell.appendChild(select);
+				});
 
-				actionsCell.appendChild(supprimerBtn);
+				let deleteBtn = document.createElement('button');
+				deleteBtn.textContent = 'Supprimer';
+				deleteBtn.onclick = () => this.supprimer(index);
+				row.insertCell(6).appendChild(deleteBtn); // Décalage de la cellule du bouton Supprimer
 			});
-
-			// Vérification pour 'ajouterLigne'
-			const ajouterLigneButton = document.getElementById('ajouterLigne');
-			if (ajouterLigneButton) {
-				ajouterLigneButton.addEventListener('click', this.ajouterLigne.bind(this));
-			} else {
-				console.error("L'élément avec l'ID 'ajouterLigne' n'a pas été trouvé dans LignesManager.initialiser.");
-			}
-
-			// Vérification pour 'sauvegarderLignes'
-			const sauvegarderLignesButton = document.getElementById('sauvegarderLignes');
-			if (sauvegarderLignesButton) {
-				sauvegarderLignesButton.addEventListener('click', this.sauvegarderLignes.bind(this));
-			} else {
-				console.error("L'élément avec l'ID 'sauvegarderLignes' n'a pas été trouvé dans LignesManager.initialiser.");
-			}
 		} else {
-			console.error("L'élément avec l'ID 'lignesTable' n'a pas été trouvé dans LignesManager.initialiser.");
+			console.error("L'élément avec l'ID 'lignesTable' n'a pas été trouvé dans LignesManager.mettreAJour.");
 		}
 	},
-    mettreAJour: function() {
-        const table = document.getElementById('lignesTable').getElementsByTagName('tbody')[0];
-        table.innerHTML = '';
-        lignes.forEach((ligne, index) => {
-            let row = table.insertRow();
-            ['jammer', 'pivot', 'blocker0', 'blocker1', 'blocker2'].forEach(poste => {
-                let cell = row.insertCell();
-                cell.setAttribute('data-index', index);
-                cell.setAttribute('data-poste', poste);
-                cell.setAttribute('ondrop', 'drop(event)');
-                cell.setAttribute('ondragover', 'allowDrop(event)');
-
-                let select = this.creerListeDeroulante(roster.map(j => j.nom), ligne[poste]);
-                select.onchange = (event) => this.mettreAJourLigne(index, poste, event.target.value);
-                cell.appendChild(select);
-            });
-            let deleteBtn = document.createElement('button');
-            deleteBtn.textContent = 'Supprimer';
-            deleteBtn.onclick = () => this.supprimer(index);
-            row.insertCell().appendChild(deleteBtn);
-        });
-    },
-    creerListeDeroulante: function(joueuses, nomSelectionne) {
+    creerListeDeroulante: function(joueuses, nomSelectionne, poste) {
         let select = document.createElement('select');
-        joueuses.forEach(nom => {
-            let option = document.createElement('option');
-            option.value = nom;
-            option.text = nom;
-            if (nom === nomSelectionne) {
-                option.selected = true;
-            }
-            select.appendChild(option);
-        });
+        if (joueuses && joueuses.length > 0) {
+            joueuses.forEach(joueuse => {
+                if (poste === 'jammer' && joueuse.jammer ||
+                    poste === 'pivot' && joueuse.pivot ||
+                    poste.startsWith('blocker') && joueuse.blocker) {
+
+                    let option = document.createElement('option');
+                    option.value = joueuse.nom;
+                    option.text = joueuse.nom;
+                    if (joueuse.nom === nomSelectionne) {
+                        option.selected = true;
+                    }
+                    select.appendChild(option);
+                }
+            });
+        }
         return select;
     },
     mettreAJourLigne: function(index, poste, nom) {
         lignes[index][poste] = nom;
         this.sauvegarder();
     },
-    ajouter: function() {
+    ajouterLigne: function() {
         let nouvelleLigne = { jammer: '', pivot: '', blocker0: '', blocker1: '', blocker2: '' };
         lignes.push(nouvelleLigne);
         this.mettreAJour();
@@ -343,90 +339,128 @@ const LignesManager = {
     },
     sauvegarder: function() {
         localStorage.setItem('lignes', JSON.stringify(lignes));
-    }
+    },
+	
+	dragStart: function(event) {
+        event.dataTransfer.setData("text/plain", event.target.dataset.index); // Utilisation de data-index
+    },
+
+    dragOver: function(event) {
+        event.preventDefault();
+    },
+
+    drop: function(event) {
+        event.preventDefault();
+        const fromIndex = parseInt(event.dataTransfer.getData("text/plain"));
+        const toIndex = parseInt(event.target.parentElement.dataset.index); // Utilisation de data-index
+
+        if (fromIndex === toIndex) return;
+
+        // Échange des lignes
+        [lignes[fromIndex], lignes[toIndex]] = [lignes[toIndex], lignes[fromIndex]];
+
+        this.mettreAJour();
+        this.sauvegarder();
+    },
 };
 
 // Fonctions de gestion du Jeu (jeu.html)
 const JeuManager = {
-	gererPrison: function(nom) {
+	gererPrison : function(nom) {
 		console.log(`JeuManager.gererPrison() appelé avec nom: ${nom}`);
 
 		if (joueusesEnPrison.includes(nom)) {
 			joueusesEnPrison = joueusesEnPrison.filter(joueuse => joueuse !== nom);
-			// Mettre à jour l'état des boutons Pause/Retour si la joueuse libérée est Jammer ou Pivot
+
+			// Mise à jour des boutons Pause pour Jammer et Pivot
 			if (lignes[ligneActuelleIndex].jammer === nom || lignes[ligneActuelleIndex].pivot === nom) {
 				const poste = lignes[ligneActuelleIndex].jammer === nom ? 'jammer' : 'pivot';
 				const prochaineLigne = lignes[(ligneActuelleIndex + 1) % lignes.length];
 				const nomPause = prochaineLigne[poste];
-				const boutonId = poste; // Utiliser l'identifiant unique (poste)
+				const boutonId = poste;
 
-				// Mettre à jour l'état dans joueusesEnPause
-				delete joueusesEnPause[boutonId];
-
-				// Mettre à jour l'affichage des boutons
-				JeuManager.creerEtAfficherProchaineLigne();
+				if (joueusesEnPause[boutonId] === nomPause) {
+					delete joueusesEnPause[boutonId];
+					if (stats[nomPause]) {
+						stats[nomPause].pauses--;
+					}
+				}
 			}
+
+			// Mise à jour des boutons Pause pour les bloqueuses
+			const postesBloqueuses = ['blocker0', 'blocker1', 'blocker2'];
+			postesBloqueuses.forEach(poste => {
+				if (lignes[ligneActuelleIndex][poste] === nom) {
+					const prochaineLigne = lignes[(ligneActuelleIndex + 1) % lignes.length];
+					postesBloqueuses.forEach((prochainPoste, index) => {
+						const nomPause = prochaineLigne[prochainPoste];
+						const boutonId = `${prochainPoste}-0`;
+
+						if (joueusesEnPause[boutonId] === nomPause) {
+							delete joueusesEnPause[boutonId];
+							if (stats[nomPause]) {
+								stats[nomPause].pauses--;
+							}
+						}
+					});
+				}
+			});
 		} else {
 			joueusesEnPrison.push(nom);
-			const postesOrdre = ['jammer', 'pivot', 'blocker0', 'blocker1', 'blocker2'];
-			if (postesOrdre.slice(2).some(p => lignes[ligneActuelleIndex][p] === nom)) {
-				bloqueusesEnPrisonOrdre.push(nom);
-			}
-			// Ici, il faut ajouter la logique pour incrémenter les stats
+
+			// Incrémentation des fautes et prisons
 			if (!stats[nom]) {
 				stats[nom] = { fautes: 0, prisons: 0, pauses: 0 };
 			}
 			stats[nom].prisons++;
-			stats[nom].fautes++; // Incrémenter le nombre de fautes
-		}
-
-		localStorage.setItem('stats', JSON.stringify(stats));
-		JeuManager.afficher();
-	},
-		ajouterFaute: function(nom) {
-        if (!stats[nom]) {
-            stats[nom] = { fautes: 0, pauses: 0 };
-        }
-        stats[nom].fautes++;
-        localStorage.setItem('stats', JSON.stringify(stats));
-        JeuManager.afficher();
-    },
-	gererPause: function(poste, event) {
-		console.log(`JeuManager.gererPause() appelé avec poste: ${poste}`);
-
-		const nomPrison = lignes[ligneActuelleIndex][poste];
-		const nomPause = lignes[(ligneActuelleIndex + 1) % lignes.length][poste];
-		const boutonId = event.target.dataset.id; // Utiliser data-id
-
-		console.log(`boutonId: ${boutonId}`);
-		console.log(`joueusesEnPause[boutonId]: ${joueusesEnPause[boutonId]}`);
-		console.log(`nomPause: ${nomPause}`);
-
-		// Mettre à jour l'état du bouton avant de générer boutonId
-		if (joueusesEnPause[boutonId] === nomPause) {
-			delete joueusesEnPause[boutonId];
-			event.target.className = '';
-			event.target.textContent = `Pause (${nomPrison})`;
-
-			// Décrémenter le nombre de pauses
-			if (stats[nomPause]) {
-				stats[nomPause].pauses--;
-			}
-		} else {
-			joueusesEnPause[boutonId] = nomPause;
-			event.target.className = 'pause-active';
-			event.target.textContent = `Retour (${nomPrison})`;
-
-			// Incrémenter le nombre de pauses
-			if (!stats[nomPause]) {
-				stats[nomPause] = { fautes: 0, prisons: 0, pauses: 0 };
-			}
-			stats[nomPause].pauses++;
+			stats[nom].fautes++;
 		}
 
 		localStorage.setItem('stats', JSON.stringify(stats));
 		JeuManager.afficher();
 		JeuManager.creerEtAfficherProchaineLigne();
+	},
+	gererPause: function(poste, event) {
+		console.log(`JeuManager.gererPause() appelé avec poste: ${poste}`)
+
+		const nomPrison = lignes[ligneActuelleIndex][poste]
+		const nomPause = lignes[(ligneActuelleIndex + 1) % lignes.length][poste]
+		const boutonId = event.target.dataset.id
+
+		if (joueusesEnPause[boutonId] === nomPause) {
+			delete joueusesEnPause[boutonId]
+			event.target.className = ''
+			event.target.textContent = `Pause (${nomPrison})`
+			if (stats[nomPause]) {
+				stats[nomPause].pauses--
+			}
+		} else {
+			// Transfert de pause si une autre joueuse est déjà en pause
+			const posteBloqueuses = ['blocker0', 'blocker1', 'blocker2']
+			posteBloqueuses.forEach(prochainPoste => {
+				const prochainBoutonId = `${prochainPoste}-${boutonId.split('-')[1]}`
+				if (joueusesEnPause[prochainBoutonId] === lignes[(ligneActuelleIndex + 1) % lignes.length][prochainPoste]) {
+					delete joueusesEnPause[prochainBoutonId]
+					document.querySelector(`button[data-id="${prochainBoutonId}"]`).className = ''
+					document.querySelector(`button[data-id="${prochainBoutonId}"]`).textContent = `Pause (${lignes[ligneActuelleIndex][prochainPoste]})`
+					if (stats[lignes[(ligneActuelleIndex + 1) % lignes.length][prochainPoste]]) {
+						stats[lignes[(ligneActuelleIndex + 1) % lignes.length][prochainPoste]].pauses--
+					}
+				}
+			})
+
+			joueusesEnPause[boutonId] = nomPause
+			event.target.className = 'pause-active'
+			event.target.textContent = `Retour (${nomPrison})`
+			if (!stats[nomPause]) {
+				stats[nomPause] = { fautes: 0, prisons: 0, pauses: 0 }
+			}
+			stats[nomPause].pauses++
+		}
+
+		localStorage.setItem('stats', JSON.stringify(stats))
+		JeuManager.afficher()
+		JeuManager.creerEtAfficherProchaineLigne()
 	},
 	afficher: function() {
 		console.log("JeuManager.afficher() appelé"); // Ajouter ce log
@@ -497,7 +531,7 @@ const JeuManager = {
 			joueusesEnJeuDiv.innerHTML += tableHTML;
 		}
 	},
-	creerEtAfficherProchaineLigne: function() {
+creerEtAfficherProchaineLigne: function() {
 		console.log("JeuManager.creerEtAfficherProchaineLigne() appelé");
 
 		const prochaineLigneDiv = document.getElementById('prochaineLigne');
@@ -542,13 +576,13 @@ const JeuManager = {
 					nouveauBouton.onclick = function(event) {
 						JeuManager.gererPause(poste, event);
 					};
-					nouveauBouton.dataset.id = `${poste}-${i}`; // Ajouter data-id
+					nouveauBouton.dataset.id = `${poste}-${i}`;
 					if (joueusesEnPause[nouveauBouton.dataset.id] === nomPause) {
 						nouveauBouton.className = 'pause-active';
-						nouveauBouton.textContent = `Retour (${nomPrison})`;
+						nouveauBouton.textContent = `Retour (${lignes[ligneActuelleIndex]['blocker' + i]})`;
 					} else {
-						nouveauBouton.className = '';
-						nouveauBouton.textContent = `Pause (${nomPrison})`;
+						nouveauBouton.className = 'pause-hidden';
+						nouveauBouton.textContent = `Pause (${lignes[ligneActuelleIndex]['blocker' + i]})`;
 					}
 					td.appendChild(nouveauBouton);
 				}
@@ -557,33 +591,33 @@ const JeuManager = {
 				nouveauBouton.onclick = function(event) {
 					JeuManager.gererPause(poste, event);
 				};
-				nouveauBouton.dataset.id = poste; // Ajouter data-id
+				nouveauBouton.dataset.id = poste;
 				if (joueusesEnPause[nouveauBouton.dataset.id] === nomPause) {
 					nouveauBouton.className = 'pause-active';
 					nouveauBouton.textContent = `Retour (${nomPrison})`;
 				} else {
-					nouveauBouton.className = '';
+					nouveauBouton.className = 'pause-hidden';
 					nouveauBouton.textContent = `Pause (${nomPrison})`;
 				}
 				td.appendChild(nouveauBouton);
 			}
-
 			tr.appendChild(td);
 		});
 
 		tbody.appendChild(tr);
 		tableHTML.appendChild(tbody);
 
-		// Remplacer l'ancien tableau par le nouveau
 		if (prochaineLigneTableau) {
 			prochaineLigneDiv.replaceChild(tableHTML, prochaineLigneTableau);
 		} else {
 			prochaineLigneDiv.appendChild(tableHTML);
 		}
-
-		// Mettre à jour la référence au tableau
 		prochaineLigneTableau = tableHTML;
+
+		// Mise à jour de la visibilité des boutons Pause
+		JeuManager.mettreAJourVisibiliteBoutonsPause();
 	},
+	
 	initialiserBoutonsPause: function() {
 		console.log("JeuManager.initialiserBoutonsPause() appelé"); // Ajouter ce log
 		const postesOrdre = ['jammer', 'pivot', 'blocker0', 'blocker1', 'blocker2'];
@@ -633,27 +667,73 @@ const JeuManager = {
 			}
 		});
 	},
-	
+		mettreAJourVisibiliteBoutonsPause: function() {
+		const postesOrdre = ['jammer', 'pivot', 'blocker0', 'blocker1', 'blocker2'];
+		if (lignes && lignes.length > 0) {
+			const prochaineLigne = lignes[(ligneActuelleIndex + 1) % lignes.length];
+
+			// Réinitialiser la visibilité de tous les boutons
+			for (let i = 0; i < 3; i++) {
+				['blocker0', 'blocker1', 'blocker2'].forEach(poste => {
+					let bouton = document.querySelector(`button[data-id="${poste}-${i}"]`);
+					if (bouton) {
+						bouton.classList.add('pause-hidden');
+					}
+				});
+			}
+
+			// Afficher les boutons en fonction des bloqueuses en prison
+			['blocker0', 'blocker1', 'blocker2'].forEach((poste, index) => {
+				const nomPrison = lignes[ligneActuelleIndex][poste];
+				if (joueusesEnPrison.includes(nomPrison)) {
+					['blocker0', 'blocker1', 'blocker2'].forEach(prochainPoste => {
+						let bouton = document.querySelector(`button[data-id="${prochainPoste}-${index}"]`);
+						if (bouton) {
+							bouton.classList.remove('pause-hidden');
+						}
+					});
+				}
+			});
+
+			// Gestion des boutons Jammer et Pivot
+			['jammer', 'pivot'].forEach(poste => {
+				const nomPrison = lignes[ligneActuelleIndex][poste];
+				const nomPause = prochaineLigne[poste];
+				if (joueusesEnPrison.includes(nomPrison)) {
+					let bouton = document.querySelector(`button[data-id="${poste}"]`);
+					if (bouton) {
+						bouton.classList.remove('pause-hidden');
+					}
+				} else {
+					let bouton = document.querySelector(`button[data-id="${poste}"]`);
+					if (bouton) {
+						bouton.classList.add('pause-hidden');
+					}
+				}
+			});
+		} else {
+			console.error("lignes n'est pas initialisé ou est vide");
+		}
+	},
 	initialiser: function() {
-        console.log("JeuManager.initialiser() appelé");
+		console.log("JeuManager.initialiser() appelé");
 
-        JeuManager.afficherJoueusesEnJeu();
-        JeuManager.creerEtAfficherProchaineLigne();
+		JeuManager.afficherJoueusesEnJeu();
+		JeuManager.creerEtAfficherProchaineLigne();
 
-        // Initialiser les statistiques "Jam Joués" à 1 pour les joueuses de la première ligne
-        const ligneActuelle = lignes[ligneActuelleIndex];
-        const postesOrdre = ['jammer', 'pivot', 'blocker0', 'blocker1', 'blocker2'];
-        postesOrdre.forEach((poste, index) => {
-            const joueuse = ligneActuelle[postesOrdre[index]];
-            if (!stats[joueuse]) {
-                stats[joueuse] = { fautes: 0, prisons: 0, pauses: 0, jamsJoues: 1 };
-            } else {
-                stats[joueuse].jamsJoues = 1;
-            }
-        });
+		const ligneActuelle = lignes[ligneActuelleIndex];
+		const postesOrdre = ['jammer', 'pivot', 'blocker0', 'blocker1', 'blocker2'];
+		postesOrdre.forEach((poste, index) => {
+			const joueuse = ligneActuelle[postesOrdre[index]];
+			if (!stats[joueuse]) {
+				stats[joueuse] = { fautes: 0, prisons: 0, pauses: 0, jamsJoues: 1 };
+			} else {
+				stats[joueuse].jamsJoues = 1;
+			}
+		});
 
-        localStorage.setItem('stats', JSON.stringify(stats)); // Sauvegarder stats
-    },
+		localStorage.setItem('stats', JSON.stringify(stats));
+	},
 
 	nextJam: function() {
 		console.log("JeuManager.nextJam() appelé");
@@ -662,35 +742,29 @@ const JeuManager = {
 		compteurJams++;
 		localStorage.setItem('compteurJams', compteurJams);
 
-		// Incrémenter le nombre de "Jam Joués" pour chaque joueuse en jeu
 		const ligneActuelle = lignes[ligneActuelleIndex];
 		const postesOrdre = ['jammer', 'pivot', 'blocker0', 'blocker1', 'blocker2'];
 		postesOrdre.forEach((poste, index) => {
 			const joueuse = ligneActuelle[postesOrdre[index]];
-			console.log(`Joueuse: ${joueuse}`);
-			console.log(`Stats avant: ${JSON.stringify(stats[joueuse])}`);
 			if (!stats[joueuse]) {
 				stats[joueuse] = { fautes: 0, prisons: 0, pauses: 0, jamsJoues: 0 };
 			}
 			stats[joueuse].jamsJoues++;
-			console.log(`Stats après: ${JSON.stringify(stats[joueuse])}`);
 		});
 
-		localStorage.setItem('stats', JSON.stringify(stats)); // Sauvegarder stats
-		console.log(`Stats sauvegardées: ${JSON.stringify(stats)}`);
-
+		localStorage.setItem('stats', JSON.stringify(stats));
 		JeuManager.afficher();
 		JeuManager.creerEtAfficherProchaineLigne();
 	},
-	
+		
 	mettreAJourStats: function() {
 		console.log("JeuManager.mettreAJourStats() appelé");
 
 		const statsTable = document.getElementById('statsTable').getElementsByTagName('tbody')[0];
-		statsTable.innerHTML = ''; // Effacer le tableau existant
+		statsTable.innerHTML = '';
 
 		roster.forEach(joueuse => {
-			const joueuseStats = stats[joueuse.nom] || { fautes: 0, prisons: 0, pauses: 0, jamsJoues: 0 }; // Initialiser les stats à zéro si elles n'existent pas
+			const joueuseStats = stats[joueuse.nom] || { fautes: 0, prisons: 0, pauses: 0, jamsJoues: 0 };
 			const row = statsTable.insertRow();
 			const nomCell = row.insertCell(0);
 			const numeroCell = row.insertCell(1);
@@ -703,7 +777,7 @@ const JeuManager = {
 			nomCell.textContent = joueuse.nom;
 			numeroCell.textContent = joueuse.numero;
 			jamsJouesCell.textContent = joueuseStats.jamsJoues;
-			pourcentageCell.textContent = compteurJams > 1 ? Math.round((joueuseStats.jamsJoues / (compteurJams)) * 100) + '%' : '0%'; // Calcul corrigé
+			pourcentageCell.textContent = compteurJams > 1 ? Math.round((joueuseStats.jamsJoues / (compteurJams)) * 100) + '%' : '0%';
 			prisonsCell.textContent = joueuseStats.prisons;
 			pausesCell.textContent = joueuseStats.pauses;
 			fautesCell.textContent = joueuseStats.fautes;
@@ -711,28 +785,27 @@ const JeuManager = {
 	},
 	
     resetStats: function() {
-        console.log("JeuManager.resetStats() appelé");
+		console.log("JeuManager.resetStats() appelé");
 
-        stats = {};
-        localStorage.setItem('stats', JSON.stringify(stats));
-        compteurJams = 1;
-        localStorage.setItem('compteurJams', compteurJams);
-        JeuManager.mettreAJourStats();
+		stats = {};
+		localStorage.setItem('stats', JSON.stringify(stats));
+		compteurJams = 1;
+		localStorage.setItem('compteurJams', compteurJams);
+		JeuManager.mettreAJourStats();
 
-        // Réinitialiser les statistiques "Jam Joués" à 1 pour les joueuses de la première ligne
-        const ligneActuelle = lignes[ligneActuelleIndex];
-        const postesOrdre = ['jammer', 'pivot', 'blocker0', 'blocker1', 'blocker2'];
-        postesOrdre.forEach((poste, index) => {
-            const joueuse = ligneActuelle[postesOrdre[index]];
-            if (!stats[joueuse]) {
-                stats[joueuse] = { fautes: 0, prisons: 0, pauses: 0, jamsJoues: 1 };
-            } else {
-                stats[joueuse].jamsJoues = 1;
-            }
-        });
+		const ligneActuelle = lignes[ligneActuelleIndex];
+		const postesOrdre = ['jammer', 'pivot', 'blocker0', 'blocker1', 'blocker2'];
+		postesOrdre.forEach((poste, index) => {
+			const joueuse = ligneActuelle[postesOrdre[index]];
+			if (!stats[joueuse]) {
+				stats[joueuse] = { fautes: 0, prisons: 0, pauses: 0, jamsJoues: 1 };
+			} else {
+				stats[joueuse].jamsJoues = 1;
+			}
+		});
 
-        localStorage.setItem('stats', JSON.stringify(stats)); // Sauvegarder stats
-    },
+		localStorage.setItem('stats', JSON.stringify(stats));
+	},
 };
 
 // Initialisation des données au chargement de la page
